@@ -7,6 +7,7 @@ import '../views/pages/home/home_page.dart';
 import '../views/pages/account/account_page.dart';
 import '../views/pages/auth/login_page.dart';
 import '../views/pages/auth/register_page.dart';
+ import '../views/pages/transfer/transfer_page.dart';
 
 final router = GoRouter(
   initialLocation: '/login',
@@ -31,6 +32,13 @@ final router = GoRouter(
       builder: (context, state) => const MainLayout(
         currentIndex: 1,
         child: ContactsPage(),
+      ),
+    ),
+     GoRoute(
+      path: '/transfer',
+      builder: (context, state) => const MainLayout(
+        currentIndex: 2,
+        child: TransferPage(),
       ),
     ),
     GoRoute(
