@@ -2,16 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'routes/router.dart';
 import 'services/http/dio_client.dart';
 import 'services/auth_service.dart';
-import 'providers/auth_provider.dart';
+import 'providers/auth_notifier.dart';
 
 void main() async {
-  // Assurez-vous que les liaisons Flutter sont initialisées
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Exécutez l'application
+  await Hive.initFlutter();
+  
   runApp(const MyApp());
 }
 
@@ -22,25 +22,29 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Fournir le service d'authentification
-        Provider<AuthService>(
-          create: (_) => AuthService(DioClient()),
+        // Provide DioClient
+        Provider<DioClient>(
+          create: (_) => DioClient(),
         ),
-        // Fournir le provider d'authentification
-        ChangeNotifierProxyProvider<AuthService, AuthProvider>(
-          create: (context) => AuthProvider(context.read<AuthService>()),
+        // Provide AuthService
+        ProxyProvider<DioClient, AuthService>(
+          create: (context) => AuthService(context.read<DioClient>()),
+          update: (context, dioClient, previous) => 
+            previous ?? AuthService(dioClient),
+        ),
+        // Provide AuthNotifier
+        ChangeNotifierProxyProvider<AuthService, AuthNotifier>(
+          create: (context) => AuthNotifier(context.read<AuthService>()),
           update: (context, authService, previous) => 
-            previous ?? AuthProvider(authService),
+            previous ?? AuthNotifier(authService),
         ),
       ],
       child: MaterialApp.router(
         title: 'Wave Mobile',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          // Configuration du thème
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
-          // Personnalisation des boutons
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
@@ -50,7 +54,6 @@ class MyApp extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
-          // Personnalisation des champs de texte
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
             fillColor: Colors.grey[100],
@@ -68,7 +71,6 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        // Configuration du routeur
         routerConfig: router,
       ),
     );

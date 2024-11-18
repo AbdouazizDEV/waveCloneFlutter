@@ -1,21 +1,52 @@
 // lib/views/pages/transfer/success_modal.dart
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+
 class SuccessModal extends StatelessWidget {
   final double amount;
-  final String recipientName;
-  final String recipientEmail;
   final String recipientPhone;
+  final String? recipientName;
+  final String recipientEmail;
+  final String? message;
+  final String? transactionId;
+  final String? reference;
+  final DateTime? date;
 
   const SuccessModal({
     Key? key,
     required this.amount,
-    required this.recipientName,
-    required this.recipientEmail,
     required this.recipientPhone,
+    this.recipientName,
+    required this.recipientEmail,
+    this.message,
+    this.transactionId,
+    this.reference,
+    this.date,
   }) : super(key: key);
+
+  void _shareReceipt() {
+  final timestamp = date ?? DateTime.now();
+  Share.share('''
+    Transfert Wave
+    Montant: ${NumberFormat.currency(symbol: 'FCFA ', decimalDigits: 0).format(amount)}
+    Destinataire: ${recipientName ?? recipientPhone}
+    Date: ${DateFormat('dd/MM/yyyy HH:mm').format(timestamp)}
+    ${reference != null ? 'Référence: $reference' : ''}
+    ${message != null ? 'Message: $message' : ''}
+  ''');
+}
 
   @override
   Widget build(BuildContext context) {
+    final currencyFormat = NumberFormat.currency(
+      symbol: 'FCFA ',
+      decimalDigits: 0,
+    );
+    final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+    final timestamp = date ?? DateTime.now();
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
@@ -28,7 +59,7 @@ class SuccessModal extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
-              color: Colors.deepPurple,
+              color: Colors.green,
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -39,7 +70,7 @@ class SuccessModal extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            '\$${amount.toStringAsFixed(2)}',
+            currencyFormat.format(amount),
             style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -47,55 +78,54 @@ class SuccessModal extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Sent to $recipientName',
+            'Envoyé à ${recipientName ?? recipientPhone}',
             style: const TextStyle(
               fontSize: 18,
               color: Colors.grey,
             ),
           ),
-          Text(
-            recipientEmail,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
+          if (message != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              message!,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.green,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
+          ],
           const SizedBox(height: 24),
-          _buildInfoRow('You sent', '\$${amount.toStringAsFixed(2)}'),
-          _buildInfoRow('To', recipientName),
-          _buildInfoRow('Email', recipientEmail),
-          _buildInfoRow('Date', DateTime.now().toString()),
-          _buildInfoRow('Transaction ID', '2257544149'),
-          _buildInfoRow('Reference ID', 'XtnuZ8N3'),
+          _buildInfoRow('Montant', currencyFormat.format(amount)),
+          _buildInfoRow('Destinataire', recipientPhone),
+          _buildInfoRow('Date', dateFormat.format(timestamp)),
+          if (transactionId != null)
+            _buildInfoRow('N° Transaction', transactionId!),
+          if (reference != null)
+            _buildInfoRow('Référence', reference!),
           const SizedBox(height: 24),
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    // TODO: Implémenter le téléchargement du reçu
-                  },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: Colors.deepPurple),
-                  ),
-                  child: const Text('Download Receipt'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Implémenter le partage du reçu
-                  },
+                child: ElevatedButton.icon(
+                  onPressed: _shareReceipt,
+                  icon: const Icon(Icons.share),
+                  label: const Text('Partager le reçu'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text('Share Receipt'),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer'),
           ),
         ],
       ),

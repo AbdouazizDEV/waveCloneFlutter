@@ -1,11 +1,11 @@
 // lib/models/auth/register_model.dart
+
 class RegisterModel {
   final String nom;
   final String prenom;
   final String telephone;
   final String email;
   final int roleId;
-  final String code;
 
   RegisterModel({
     required this.nom,
@@ -13,7 +13,6 @@ class RegisterModel {
     required this.telephone,
     required this.email,
     required this.roleId,
-    required this.code,
   });
 
   Map<String, dynamic> toJson() => {
@@ -21,7 +20,6 @@ class RegisterModel {
     'prenom': prenom,
     'telephone': telephone,
     'email': email,
-    'roleId': roleId,
-    'code': code,
+    'roleId': roleId,  // Changé de roleId à role_id pour correspondre à l'API
   };
 }

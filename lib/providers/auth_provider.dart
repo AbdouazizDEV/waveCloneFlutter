@@ -14,21 +14,27 @@ class AuthProvider extends ChangeNotifier {
   models.AuthModel? get currentUser => _currentUser;
   String? get error => _error;
  Future<bool> login(String phone, String code) async {
-    try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
+  try {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
 
-      bool isValid = await _authService.validateLogin(phone, code);
-      return isValid;
-    } catch (e) {
-      _error = e.toString();
+    final response = await _authService.login(phone, code);
+    // Check the response to see if the login was successful
+    // For example:
+    if (response != null && response['access_token'] != null) {
+      return true;
+    } else {
       return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
+  } catch (e) {
+    _error = e.toString();
+    return false;
+  } finally {
+    _isLoading = false;
+    notifyListeners();
   }
+}
 
   Future<void> logout() async {
     try {
